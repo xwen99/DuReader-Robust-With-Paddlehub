@@ -1,8 +1,8 @@
 export FLAGS_eager_delete_tensor_gb=0.0
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=0,1
 
-python -u reading_comprehension.py \
-                   --batch_size=8 \
+python3 -u reading_comprehension.py \
+                   --batch_size=32 \
                    --use_gpu=True \
                    --checkpoint_dir="./ckpt_dureader" \
                    --learning_rate=3e-5 \
