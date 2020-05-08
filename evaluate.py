@@ -178,8 +178,8 @@ def calc_em_score(answers, prediction):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('shortA')
-    parser.add_argument('dataset_file', help='dataset file')
-    parser.add_argument('pred_file', help='model prediction file')
+    parser.add_argument('--dataset_file', help='dataset file')
+    parser.add_argument('--pred_file', help='model prediction file')
     parser.add_argument('--verbose', action='store_true', help='print QPA info of every sample')
     parser.add_argument('--debug', action='store_true', help='debug mode')
     args = parser.parse_args()

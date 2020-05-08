@@ -310,7 +310,7 @@ def convert_examples_to_features(
                 start_position = 0
                 end_position = 0
 
-            if example_index < 3:
+            if example_index < 3 and False:
                 print(u"*** Example ***")
                 print(u"unique_id: %s" % (unique_id))
                 print(u"example_index: %s" % (example_index))

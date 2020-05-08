@@ -36,6 +36,7 @@ import paddle.fluid as fluid
 import pdb
 from reader.squad import DataProcessor, write_predictions
 from model.ernie import ErnieConfig, ErnieModel
+from model.transformer_encoder import encoder
 from utils.args import ArgumentGroup, print_arguments, check_cuda
 from optimization import optimization
 from utils.init import init_pretraining_params, init_checkpoint
@@ -149,6 +150,22 @@ def create_model(ernie_config, is_training=False):
         use_fp16=args.use_fp16)
 
     enc_out = ernie.get_sequence_output()
+
+    enc_out = encoder(
+        enc_input=enc_out,
+        attn_bias=0.,
+        n_layer=2,
+        n_head=8,
+        d_key=768 // 8,
+        d_value=768 // 8,
+        d_model=768,
+        d_inner_hid=1024,
+        prepostprocess_dropout=0.1,
+        attention_dropout=0.1,
+        relu_dropout=0.0,
+        hidden_act='relu',
+        param_initializer=fluid.initializer.TruncatedNormal(scale=0.02), 
+        name='last_encoder')
 
     logits = fluid.layers.fc(
         input=enc_out,

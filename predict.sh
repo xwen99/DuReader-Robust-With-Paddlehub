@@ -2,7 +2,7 @@
 export PYTHONIOENCODING=utf-8
 
 if [ -z "$CUDA_VISIBLE_DEVICES" ];then
-    export CUDA_VISIBLE_DEVICES=3
+    export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 fi
 
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
@@ -19,7 +19,7 @@ fi
 echo "CKPT=$CKPT"
 
 python -u src/run_mrc.py --use_cuda true \
-                --batch_size 16 \
+                --batch_size 32 \
                 --checkpoints output \
                 --init_checkpoint ${CKPT} \
                 --vocab_path ${PRETRAINED_MODEL_PATH}/vocab.txt \
@@ -27,9 +27,10 @@ python -u src/run_mrc.py --use_cuda true \
                 --max_seq_len 512 \
                 --do_lower_case true \
                 --doc_stride 128 \
-                --max_answer_length 30 \
+                --max_answer_length 40 \
                 --do_train false \
                 --do_predict true \
+                --predict_file data/dev.json \
                 $@
 
 
