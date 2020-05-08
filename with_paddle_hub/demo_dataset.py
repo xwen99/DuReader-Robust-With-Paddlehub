@@ -32,7 +32,8 @@ class DuReader(BaseNLPDataset):
         super(DuReader, self).__init__(
             base_path=dataset_dir,
             train_file="train.json",
-            dev_file="dev.json"
+            dev_file="dev.json",
+            predict_file='test1.json'
         )
 
     def _read_file(self, input_file, phase=False):

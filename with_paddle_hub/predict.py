@@ -19,23 +19,20 @@ import ast
 import json
 import os
 
+import paddle
 import paddle.fluid as fluid
 import paddlehub as hub
-
 from demo_dataset import DuReader
+
+hub.common.logger.logger.setLevel("INFO")
 
 # yapf: disable
 parser = argparse.ArgumentParser(__doc__)
 parser.add_argument("--dataset_path", type=str, default=None, help="The diretory to DuReader robust dataset")
-parser.add_argument("--num_epoch", type=int, default=1, help="Number of epoches for fine-tuning.")
 parser.add_argument("--use_gpu", type=ast.literal_eval, default=True, help="Whether use GPU for finetuning, input should be True or False")
-parser.add_argument("--learning_rate", type=float, default=3e-5, help="Learning rate used to train with warmup.")
-parser.add_argument("--weight_decay", type=float, default=0.01, help="Weight decay rate for L2 regularizer.")
-parser.add_argument("--warmup_proportion", type=float, default=0.0, help="Warmup proportion params for warmup strategy")
-parser.add_argument("--checkpoint_dir", type=str, default=None, help="Directory to model checkpoint")
-parser.add_argument("--max_seq_len", type=int, default=384, help="Number of words of the longest seqence.")
-parser.add_argument("--batch_size", type=int, default=8, help="Total examples' number in batch for training.")
-parser.add_argument("--use_data_parallel", type=ast.literal_eval, default=True, help="Whether use data parallel.")
+parser.add_argument("--checkpoint_dir", type=str, default=None, help="Directory to model checkpoint.")
+parser.add_argument("--max_seq_len", type=int, default=512, help="Number of words of the longest seqence.")
+parser.add_argument("--batch_size", type=int, default=32, help="Total examples' number in batch for training.")
 args = parser.parse_args()
 # yapf: enable.
 
@@ -68,23 +65,14 @@ if __name__ == '__main__':
         inputs["input_mask"].name,
     ]
 
-    # 选择Fine-tune优化策略
-    strategy = hub.AdamWeightDecayStrategy(
-        weight_decay=args.weight_decay,
-        learning_rate=args.learning_rate,
-        warmup_proportion=args.warmup_proportion)
-
     # 设置运行配置
     config = hub.RunConfig(
-        eval_interval=500,
         use_pyreader=False,
-        use_data_parallel=args.use_data_parallel,
+        use_data_parallel=False,
         use_cuda=args.use_gpu,
-        num_epoch=args.num_epoch,
         batch_size=args.batch_size,
         checkpoint_dir=args.checkpoint_dir,
-        save_ckpt_interval=500,
-        strategy=strategy)
+        strategy=hub.AdamWeightDecayStrategy())
 
     # 定义阅读理解Fine-tune Task
     # 由于竞赛数据集与cmrc2018数据集格式比较相似，此处sub_task应为cmrc2018
@@ -97,12 +85,9 @@ if __name__ == '__main__':
         sub_task="cmrc2018",
     )
     
-    # 调用finetune_and_eval API，将会自动进行训练、评估以及保存最佳模型
-    reading_comprehension_task.finetune_and_eval()
-    
-    # 数据集验证集部分数据用于预测
-    data = dataset.get_test_examples()
+    # 数据集测试集全部数据用于预测
+    data = dataset.get_predict_examples()
     # 调用predict接口, 打开return_result(True)，将自动返回预测结果
-    all_prediction = reading_comprehension_task.predict(data=data, load_best_model=False, return_result=True)
+    all_prediction = reading_comprehension_task.predict(data=data, load_best_model=True, return_result=True)
     # 写入预测结果
     json.dump(all_prediction, open('submit.json', 'w'), ensure_ascii=False)
