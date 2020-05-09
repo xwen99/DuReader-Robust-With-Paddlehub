@@ -39,7 +39,8 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
     # 加载PaddleHub ERNIE预训练模型
-    module = hub.Module(name="ernie")
+    #module = hub.Module(name="ernie")
+    module = hub.Module(name="chinese-roberta-wwm-ext-large")
     
     # ERNIE预训练模型输入变量inputs、输出变量outputs、以及模型program
     inputs, outputs, program = module.context(
@@ -83,6 +84,7 @@ if __name__ == '__main__':
         feed_list=feed_list,
         config=config,
         sub_task="cmrc2018",
+        max_answer_length=20
     )
     
     # 数据集测试集全部数据用于预测
