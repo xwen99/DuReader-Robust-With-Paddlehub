@@ -21,6 +21,7 @@ import os
 
 import paddle.fluid as fluid
 import paddlehub as hub
+from my_reading_comprehension_task import ReadingComprehensionTask
 
 from demo_dataset import DuReader
 
@@ -42,7 +43,8 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
     # 加载PaddleHub ERNIE预训练模型
-    module = hub.Module(name="ernie")
+    #module = hub.Module(name="ernie")
+    module = hub.Module(name="chinese-roberta-wwm-ext-large")
     
     # ERNIE预训练模型输入变量inputs、输出变量outputs、以及模型program
     inputs, outputs, program = module.context(
@@ -76,7 +78,7 @@ if __name__ == '__main__':
 
     # 设置运行配置
     config = hub.RunConfig(
-        eval_interval=500,
+        eval_interval=100,
         use_pyreader=False,
         use_data_parallel=args.use_data_parallel,
         use_cuda=args.use_gpu,
@@ -89,12 +91,13 @@ if __name__ == '__main__':
     # 定义阅读理解Fine-tune Task
     # 由于竞赛数据集与cmrc2018数据集格式比较相似，此处sub_task应为cmrc2018
     # 否则运行可能出错
-    reading_comprehension_task = hub.ReadingComprehensionTask(
+    reading_comprehension_task = ReadingComprehensionTask(
         data_reader=reader,
         feature=seq_output,
         feed_list=feed_list,
         config=config,
         sub_task="cmrc2018",
+        max_answer_length=30
     )
     
     # 调用finetune_and_eval API，将会自动进行训练、评估以及保存最佳模型
