@@ -36,7 +36,7 @@ from paddlehub.finetune.evaluator import squad1_evaluate
 from paddlehub.finetune.evaluator import squad2_evaluate
 from paddlehub.finetune.evaluator import cmrc2018_evaluate
 
-def dsc_loss(logits, label, gamma=1.0, name=None):
+def dsc_loss(logits, label, gamma=1.0):
     y_pred = fluid.layers.softmax(logits, axis=1)
     y_pred = fluid.layers.reshape(y_pred, shape=[-1])
     label = fluid.layers.one_hot(label, depth=logits.shape[-1])
@@ -46,6 +46,14 @@ def dsc_loss(logits, label, gamma=1.0, name=None):
     dice_denominator = fluid.layers.reduce_sum((1.0 - y_pred) * y_pred) + fluid.layers.reduce_sum(label)
     dice_score = 1.0 - (2.0 * dice_numerator + gamma) / (dice_denominator + gamma)
     return dice_score
+
+def focal_loss(logits, label, alpha=0.25, gamma=2):
+    y_pred = fluid.layers.softmax(logits, axis=1)
+    y_pred = fluid.layers.clip(y_pred, min=1e-8, max=1.0 - 1e-8)
+    label = fluid.layers.one_hot(label, depth=logits.shape[-1])
+    focal = - alpha * label * fluid.layers.log(y_pred) * (1 - y_pred)**gamma \
+            - (1 - alpha) * (1 - label) * fluid.layers.log(1 - y_pred) * y_pred**gamma
+    return fluid.layers.reduce_sum(focal) * 100
 
 def _get_best_indexes(logits, n_best_size):
     """Get the n-best logits from a list."""
@@ -457,15 +465,15 @@ class ReadingComprehensionTask(BaseTask):
         start_logits = self.outputs[0]
         end_logits = self.outputs[1]
 
-        start_loss = fluid.layers.softmax_with_cross_entropy(
+        '''start_loss = fluid.layers.softmax_with_cross_entropy(
             logits=start_logits, label=start_positions)
         start_loss = fluid.layers.mean(x=start_loss)
         end_loss = fluid.layers.softmax_with_cross_entropy(
             logits=end_logits, label=end_positions)
-        end_loss = fluid.layers.mean(x=end_loss)
+        end_loss = fluid.layers.mean(x=end_loss)'''
 
-        #start_loss += dsc_loss(logits=start_logits, label=start_positions)
-        #end_loss += dsc_loss(logits=end_logits, label=end_positions)
+        start_loss = focal_loss(logits=start_logits, label=start_positions)
+        end_loss = focal_loss(logits=end_logits, label=end_positions)
         total_loss = (start_loss + end_loss) / 2.0
 
         return total_loss

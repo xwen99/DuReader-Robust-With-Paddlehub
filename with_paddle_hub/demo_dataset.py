@@ -15,6 +15,7 @@
 import json
 import os
 
+import numpy as np
 from paddlehub.common.logger import logger
 from paddlehub.dataset.base_nlp_dataset import BaseNLPDataset
 from paddlehub.dataset.cmrc2018 import CMRC2018Example
@@ -31,7 +32,7 @@ class DuReader(BaseNLPDataset):
         dataset_dir = dataset_path
         super(DuReader, self).__init__(
             base_path=dataset_dir,
-            train_file="train+cmrc2018+dureader.json",
+            train_file="train+cmrc2018+dureader+webqa.json",
             dev_file="dev.json",
             predict_file='test1.json'
         )
@@ -144,6 +145,18 @@ class DuReader(BaseNLPDataset):
                             logger.warning((actual_text, " vs ",
                                             cleaned_answer_text, " in ", qa))
                             continue
+                    
+                        p = 0.1
+                        for i in range(len(doc_tokens)):
+                            if np.random.random() < p:
+                                doc_tokens[i] = "[PAD]"
+
+                        question_texts = list(question_text)
+                        for i in range(len(question_texts)):
+                            if np.random.random() < p:
+                                question_texts[i] = "[PAD]"
+                        question_text = ''.join(question_texts)
+                    
                     example = CMRC2018Example(
                         qas_id=qas_id,
                         question_text=question_text,

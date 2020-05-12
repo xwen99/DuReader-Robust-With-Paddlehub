@@ -97,8 +97,7 @@ if __name__ == '__main__':
         feed_list=feed_list,
         config=config,
         sub_task="cmrc2018",
-        max_answer_length=30
-    )
+        max_answer_length=20)
     
     # 调用finetune_and_eval API，将会自动进行训练、评估以及保存最佳模型
     reading_comprehension_task.finetune_and_eval()

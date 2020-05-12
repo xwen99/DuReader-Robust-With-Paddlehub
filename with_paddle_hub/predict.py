@@ -84,7 +84,7 @@ if __name__ == '__main__':
         feed_list=feed_list,
         config=config,
         sub_task="cmrc2018",
-        max_answer_length=30
+        max_answer_length=20
     )
     
     # 数据集测试集全部数据用于预测
