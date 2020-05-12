@@ -7,5 +7,5 @@ python -u predict.py \
                    --dataset_path=${DATASET_PATH} \
                    --batch_size=8 \
                    --use_gpu=True \
-                   --checkpoint_dir="./ckpt_dureader40" \
+                   --checkpoint_dir="./ckpt_dureader" \
                    --max_seq_len=512 \
