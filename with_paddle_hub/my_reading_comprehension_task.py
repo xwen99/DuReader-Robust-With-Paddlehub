@@ -53,7 +53,7 @@ def focal_loss(logits, label, alpha=0.25, gamma=2):
     label = fluid.layers.one_hot(label, depth=logits.shape[-1])
     focal = - alpha * label * fluid.layers.log(y_pred) * (1 - y_pred)**gamma \
             - (1 - alpha) * (1 - label) * fluid.layers.log(1 - y_pred) * y_pred**gamma
-    return fluid.layers.reduce_sum(focal) * 100
+    return fluid.layers.reduce_sum(focal)
 
 def _get_best_indexes(logits, n_best_size):
     """Get the n-best logits from a list."""
@@ -278,7 +278,7 @@ def get_predictions(all_examples, all_features, all_results, n_best_size,
                     end_logit=null_end_logit))
         prelim_predictions = sorted(
             prelim_predictions,
-            key=lambda x: (x.start_logit + x.end_logit),
+            key=lambda x: (x.start_logit + x.end_logit - 0.02 * (x.end_index - x.start_index)),
             reverse=True)
 
         seen_predictions = {}

@@ -32,7 +32,7 @@ class DuReader(BaseNLPDataset):
         dataset_dir = dataset_path
         super(DuReader, self).__init__(
             base_path=dataset_dir,
-            train_file="train+cmrc2018+dureader+webqa.json",
+            train_file="train+cmrc2018+dureader.json",
             dev_file="dev.json",
             predict_file='test1.json'
         )
@@ -146,7 +146,7 @@ class DuReader(BaseNLPDataset):
                                             cleaned_answer_text, " in ", qa))
                             continue
                     
-                        p = 0.1
+                        p = 0.02
                         for i in range(len(doc_tokens)):
                             if np.random.random() < p:
                                 doc_tokens[i] = "[PAD]"
