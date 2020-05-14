@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     # 设置运行配置
     config = hub.RunConfig(
-        use_pyreader=False,
+        use_pyreader=True,
         use_data_parallel=False,
         use_cuda=args.use_gpu,
         batch_size=args.batch_size,
@@ -85,12 +85,12 @@ if __name__ == '__main__':
         feed_list=feed_list,
         config=config,
         sub_task="cmrc2018",
-        max_answer_length=25
+        max_answer_length=40
     )
     
     # 数据集测试集全部数据用于预测
-    data = dataset.get_dev_examples()
+    data = dataset.get_predict_examples()
     # 调用predict接口, 打开return_result(True)，将自动返回预测结果
     all_prediction = reading_comprehension_task.predict(data=data, load_best_model=True, return_result=True)
     # 写入预测结果
-    json.dump(all_prediction, open('submit.json', 'w'), ensure_ascii=False)
+    json.dump(all_prediction, open('submit10.json', 'w'), ensure_ascii=False)

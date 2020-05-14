@@ -15,6 +15,7 @@
 import json
 import os
 
+import random
 import numpy as np
 from paddlehub.common.logger import logger
 from paddlehub.dataset.base_nlp_dataset import BaseNLPDataset
@@ -32,7 +33,7 @@ class DuReader(BaseNLPDataset):
         dataset_dir = dataset_path
         super(DuReader, self).__init__(
             base_path=dataset_dir,
-            train_file="train+cmrc2018+dureader.json",
+            train_file="train+cmrc2018+dureader+dev.json",
             dev_file="dev.json",
             predict_file='test1.json'
         )
@@ -120,7 +121,10 @@ class DuReader(BaseNLPDataset):
                         end_position=-1
                     else:
                         # 训练集/验证集选择第一个答案作为ground truth
-                        answer = qa["answers"][0]
+                        if len(qa["answers"]) == 1:
+                            answer = qa["answers"][0]
+                        else:
+                            answer = random.choice(qa["answers"])
                         orig_answer_text = answer["text"]
                         answer_offset = answer["answer_start"]
                         while paragraph_text[answer_offset] in [

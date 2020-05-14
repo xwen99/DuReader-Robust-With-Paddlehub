@@ -35,6 +35,7 @@ from paddlehub.reader import tokenization
 from paddlehub.finetune.evaluator import squad1_evaluate
 from paddlehub.finetune.evaluator import squad2_evaluate
 from paddlehub.finetune.evaluator import cmrc2018_evaluate
+import lic2020_evaluate
 
 def dsc_loss(logits, label, gamma=1.0):
     y_pred = fluid.layers.softmax(logits, axis=1)
@@ -564,8 +565,7 @@ class ReadingComprehensionTask(BaseTask):
                 scores = squad2_evaluate.evaluate(dataset, all_predictions,
                                                   scores_diff_json)
             elif self.sub_task in ["cmrc2018", "drcd"]:
-                scores = cmrc2018_evaluate.get_eval(dataset, all_predictions)
-                del scores['AVERAGE']
+                scores = lic2020_evaluate.get_eval(dataset, all_predictions)
         return scores, avg_loss, run_speed
 
     def _postprocessing(self, run_states):
