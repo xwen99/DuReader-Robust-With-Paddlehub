@@ -54,7 +54,7 @@ def focal_loss(logits, label, alpha=0.25, gamma=2):
     label = fluid.layers.one_hot(label, depth=logits.shape[-1])
     focal = - alpha * label * fluid.layers.log(y_pred) * (1 - y_pred)**gamma \
             - (1 - alpha) * (1 - label) * fluid.layers.log(1 - y_pred) * y_pred**gamma
-    return fluid.layers.reduce_sum(focal)
+    return fluid.layers.reduce_mean(focal) * 100
 
 def _get_best_indexes(logits, n_best_size):
     """Get the n-best logits from a list."""
@@ -199,7 +199,7 @@ def get_predictions(all_examples, all_features, all_results, n_best_size,
         "feature_index", "start_index", "end_index", "start_logit", "end_logit"
     ])
     _NbestPrediction = collections.namedtuple(
-        "NbestPrediction", ["text", "start_logit", "end_logit"])
+        "NbestPrediction", ["text", "start_logit", "end_logit", "start_index", "end_index"])
     example_index_to_features = collections.defaultdict(list)
     for feature in all_features:
         example_index_to_features[feature.example_index].append(feature)
@@ -327,7 +327,9 @@ def get_predictions(all_examples, all_features, all_results, n_best_size,
                 _NbestPrediction(
                     text=final_text,
                     start_logit=pred.start_logit,
-                    end_logit=pred.end_logit))
+                    end_logit=pred.end_logit,
+                    start_index=pred.start_index,
+                    end_index=pred.end_index))
 
         # if we didn't include the empty option in the n-best, include it
         if version_2_with_negative:
@@ -336,19 +338,21 @@ def get_predictions(all_examples, all_features, all_results, n_best_size,
                     _NbestPrediction(
                         text="",
                         start_logit=null_start_logit,
-                        end_logit=null_end_logit))
+                        end_logit=null_end_logit,
+                        start_index=0,
+                        end_index=0))
         # In very rare edge cases we could have no valid predictions. So we
         # just create a nonce prediction in this case to avoid failure.
         if not nbest:
             nbest.append(
-                _NbestPrediction(text="empty", start_logit=0.0, end_logit=0.0))
+                _NbestPrediction(text="empty", start_logit=0.0, end_logit=0.0, start_index=0, end_index=0))
 
         assert len(nbest) >= 1
 
         total_scores = []
         best_non_null_entry = None
         for entry in nbest:
-            total_scores.append(entry.start_logit + entry.end_logit)
+            total_scores.append(entry.start_logit + entry.end_logit - 0.02 * (entry.end_index - entry.start_index))
             if not best_non_null_entry:
                 if entry.text:
                     best_non_null_entry = entry
@@ -595,4 +599,4 @@ class ReadingComprehensionTask(BaseTask):
             version_2_with_negative=self.version_2_with_negative,
             null_score_diff_threshold=self.null_score_diff_threshold,
             is_english=self.is_english)
-        return all_predictions
+        return all_predictions, all_nbest_json

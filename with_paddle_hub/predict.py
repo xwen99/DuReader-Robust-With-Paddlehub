@@ -89,8 +89,9 @@ if __name__ == '__main__':
     )
     
     # 数据集测试集全部数据用于预测
-    data = dataset.get_predict_examples()
+    data = dataset.get_dev_examples()
     # 调用predict接口, 打开return_result(True)，将自动返回预测结果
-    all_prediction = reading_comprehension_task.predict(data=data, load_best_model=True, return_result=True)
+    all_prediction, all_nbest_json = reading_comprehension_task.predict(data=data, load_best_model=True, return_result=True)
     # 写入预测结果
-    json.dump(all_prediction, open('submit10.json', 'w'), ensure_ascii=False)
+    json.dump(all_prediction, open(args.checkpoint_dir.split('/')[-1][5:] + '_prediction_dev.json', 'w'), ensure_ascii=False)
+    json.dump(all_nbest_json, open(args.checkpoint_dir.split('/')[-1][5:] + '_nbest_dev.json', 'w'), ensure_ascii=False)

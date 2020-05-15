@@ -103,8 +103,8 @@ if __name__ == '__main__':
     reading_comprehension_task.finetune_and_eval()
     
     # 数据集验证集部分数据用于预测
-    data = dataset.get_test_examples()
+    #data = dataset.get_test_examples()
     # 调用predict接口, 打开return_result(True)，将自动返回预测结果
-    all_prediction = reading_comprehension_task.predict(data=data, load_best_model=True, return_result=True)
+    #all_prediction = reading_comprehension_task.predict(data=data, load_best_model=True, return_result=True)
     # 写入预测结果
-    json.dump(all_prediction, open('submit.json', 'w'), ensure_ascii=False)
+    #json.dump(all_prediction, open('submit23.json', 'w'), ensure_ascii=False)
