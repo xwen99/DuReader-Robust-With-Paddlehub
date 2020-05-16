@@ -24,8 +24,8 @@ def ensemble_example(answers, n_models=None):
 
 if __name__ == "__main__":
     pred = {}
-    nbest0 = json.load(open('./dureader+dev+ernie_nbest_pred.json', 'r'))
-    nbest1 = json.load(open('./dureader+dev+roberta_nbest_pred.json', 'r'))
+    nbest0 = json.load(open('./dureader+dev+roberta_nbest_pred.json', 'r'))
+    nbest1 = json.load(open('./dureader+dev+roberta4_nbest_pred.json', 'r'))
     nbests = [nbest0, nbest1]
     n_models = len(nbests)
     qids = list(nbests[0].keys())

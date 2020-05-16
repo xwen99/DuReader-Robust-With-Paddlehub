@@ -43,8 +43,9 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
     # 加载PaddleHub ERNIE预训练模型
-    module = hub.Module(name="ernie")
-    #module = hub.Module(name="chinese-roberta-wwm-ext-large")
+    #module = hub.Module(name="ernie")
+    module = hub.Module(name="chinese-roberta-wwm-ext-large")
+    #module = hub.Module(name="chinese-electra-base")
     
     # ERNIE预训练模型输入变量inputs、输出变量outputs、以及模型program
     inputs, outputs, program = module.context(
@@ -85,7 +86,7 @@ if __name__ == '__main__':
         num_epoch=args.num_epoch,
         batch_size=args.batch_size,
         checkpoint_dir=args.checkpoint_dir,
-        save_ckpt_interval=500,
+        save_ckpt_interval=2000,
         strategy=strategy)
 
     # 定义阅读理解Fine-tune Task
