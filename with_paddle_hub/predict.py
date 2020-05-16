@@ -40,8 +40,8 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
     # 加载PaddleHub ERNIE预训练模型
-    #module = hub.Module(name="ernie")
-    module = hub.Module(name="chinese-roberta-wwm-ext-large")
+    module = hub.Module(name="ernie")
+    #module = hub.Module(name="chinese-roberta-wwm-ext-large")
     
     # ERNIE预训练模型输入变量inputs、输出变量outputs、以及模型program
     inputs, outputs, program = module.context(
@@ -89,9 +89,9 @@ if __name__ == '__main__':
     )
     
     # 数据集测试集全部数据用于预测
-    data = dataset.get_dev_examples()
+    data = dataset.get_predict_examples()
     # 调用predict接口, 打开return_result(True)，将自动返回预测结果
     all_prediction, all_nbest_json = reading_comprehension_task.predict(data=data, load_best_model=True, return_result=True)
     # 写入预测结果
-    json.dump(all_prediction, open(args.checkpoint_dir.split('/')[-1][5:] + '_prediction_dev.json', 'w'), ensure_ascii=False)
-    json.dump(all_nbest_json, open(args.checkpoint_dir.split('/')[-1][5:] + '_nbest_dev.json', 'w'), ensure_ascii=False)
+    json.dump(all_prediction, open(args.checkpoint_dir.split('/')[-1][5:] + '_prediction_pred.json', 'w'), ensure_ascii=False)
+    json.dump(all_nbest_json, open(args.checkpoint_dir.split('/')[-1][5:] + '_nbest_pred.json', 'w'), ensure_ascii=False)

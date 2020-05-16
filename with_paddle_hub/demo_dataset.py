@@ -33,7 +33,7 @@ class DuReader(BaseNLPDataset):
         dataset_dir = dataset_path
         super(DuReader, self).__init__(
             base_path=dataset_dir,
-            train_file="train+cmrc2018+dureader+dev.json",
+            train_file="train.json",
             dev_file="dev.json",
             predict_file='test1.json'
         )
