@@ -150,7 +150,7 @@ class DuReader(BaseNLPDataset):
                                             cleaned_answer_text, " in ", qa))
                             continue
                     
-                        p = 0.05
+                        p = 0.02
                         for i in range(len(doc_tokens)):
                             if np.random.random() < p:
                                 doc_tokens[i] = "[PAD]"

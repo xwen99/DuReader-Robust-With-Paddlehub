@@ -510,11 +510,79 @@ class ReadingComprehensionTask(BaseTask):
 
     def _add_loss(self):
         loss = self.cl_loss_from_embedding(self.feature)
-        adv_loss = self.adversarial_loss(loss)
-        return loss + adv_loss
+        #adv_loss = self.adversarial_loss(loss)
+        return loss# + adv_loss
 
     def _add_metrics(self):
         return []
+
+    def _build_env(self):
+        """
+        building the program and strategy for specific running phase.
+        """
+        if self.env.is_inititalized:
+            return
+
+        self._build_env_start_event()
+        self.env.is_inititalized = True
+        self.env.main_program = clone_program(
+            self._base_main_program, for_test=False)
+
+        self.env.startup_program = fluid.Program()
+        with fluid.program_guard(self.env.main_program,
+                                 self._base_startup_program):
+            with fluid.unique_name.guard(self.env.UNG):
+                self.env.outputs = self._build_net()
+                if self.is_train_phase or self.is_test_phase:
+                    self.env.labels = self._add_label()
+                    self.env.loss = self._add_loss()
+                    self.env.metrics = self._add_metrics()
+
+        if self.is_predict_phase or self.is_test_phase:
+            self.env.main_program = clone_program(
+                self.env.main_program, for_test=True)
+            hub.common.paddle_helper.set_op_attr(
+                self.env.main_program, is_test=True)
+        
+        if self.is_train_phase:
+            with fluid.program_guard(self.env.main_program,
+                                    self._base_startup_program):
+                with fluid.unique_name.guard(self.env.UNG):
+                    self.env.adv_loss = self.adversarial_loss(self.loss)
+                    self.env.loss += self.env.adv_loss
+
+        if self.config.enable_memory_optim:
+            for var_name in self.fetch_list:
+                var = self.env.main_program.global_block().vars[var_name]
+                var.persistable = True
+
+        if self.is_train_phase:
+            with fluid.program_guard(self.env.main_program,
+                                     self._base_startup_program):
+                with fluid.unique_name.guard(self.env.UNG):
+                    self.scheduled_lr, self.max_train_steps = self.config.strategy.execute(
+                        self.loss, self._base_data_reader, self.config,
+                        self.device_count)
+
+        if self.is_train_phase:
+            loss_name = self.env.loss.name
+        else:
+            loss_name = None
+
+        share_vars_from = self._base_compiled_program
+
+        if not self.config.use_data_parallel:
+            self.env.main_program_compiled = None
+        else:
+            self.env.main_program_compiled = fluid.CompiledProgram(
+                self.env.main_program).with_data_parallel(
+                    loss_name=loss_name,
+                    share_vars_from=share_vars_from,
+                    build_strategy=self.build_strategy,
+                    places=self.places)
+
+        self.exe.run(self.env.startup_program)
+        self._build_env_end_event()
 
     @property
     def feed_list(self):
