@@ -29,8 +29,10 @@ from collections import OrderedDict
 import io
 import numpy as np
 import paddle.fluid as fluid
+import paddlehub as hub
 from paddlehub import BaseTask
 from paddlehub.common.logger import logger
+from paddlehub.common.paddle_helper import dtype_map, clone_program, connect_program
 from paddlehub.reader import tokenization
 from paddlehub.finetune.evaluator import squad1_evaluate
 from paddlehub.finetune.evaluator import squad2_evaluate
@@ -55,6 +57,17 @@ def focal_loss(logits, label, alpha=0.25, gamma=2):
     focal = - alpha * label * fluid.layers.log(y_pred) * (1 - y_pred)**gamma \
             - (1 - alpha) * (1 - label) * fluid.layers.log(1 - y_pred) * y_pred**gamma
     return fluid.layers.reduce_mean(focal) * 100
+
+def _scale_l2(x, norm_length):
+  # shape(x) = (batch, num_timesteps, d)
+  # Divide x by max(abs(x)) for a numerically stable L2 norm.
+  # 2norm(x) = a * 2norm(x/a)
+  # Scale over the full sequence, dims (1, 2)
+  alpha = fluid.layers.reduce_max(fluid.layers.abs(x), dim=[1, 2], keep_dim=True) + 1e-12
+  l2_norm = alpha * fluid.layers.sqrt(
+      fluid.layers.reduce_sum(fluid.layers.pow(x / alpha, 2), dim=[1, 2], keep_dim=True) + 1e-6)
+  x_unit = x / l2_norm
+  return norm_length * x_unit
 
 def _get_best_indexes(logits, n_best_size):
     """Get the n-best logits from a list."""
@@ -463,25 +476,41 @@ class ReadingComprehensionTask(BaseTask):
             name="end_positions", shape=[-1, 1], lod_level=0, dtype="int64")
         return [start_positions, end_positions]
 
-    def _add_loss(self):
+    def cl_loss_from_embedding(self, embedding):
         start_positions = self.labels[0]
         end_positions = self.labels[1]
 
-        start_logits = self.outputs[0]
-        end_logits = self.outputs[1]
+        logits = fluid.layers.fc(
+            input=embedding,
+            size=2,
+            num_flatten_dims=2,
+            param_attr=fluid.ParamAttr(
+                name="cls_seq_label_out_w",
+                initializer=fluid.initializer.TruncatedNormal(scale=0.02)),
+            bias_attr=fluid.ParamAttr(
+                name="cls_seq_label_out_b",
+                initializer=fluid.initializer.Constant(0.)))
 
-        '''start_loss = fluid.layers.softmax_with_cross_entropy(
-            logits=start_logits, label=start_positions)
-        start_loss = fluid.layers.mean(x=start_loss)
-        end_loss = fluid.layers.softmax_with_cross_entropy(
-            logits=end_logits, label=end_positions)
-        end_loss = fluid.layers.mean(x=end_loss)'''
+        logits = fluid.layers.transpose(x=logits, perm=[2, 0, 1])
+        start_logits, end_logits = fluid.layers.unstack(x=logits, axis=0)
 
         start_loss = focal_loss(logits=start_logits, label=start_positions)
         end_loss = focal_loss(logits=end_logits, label=end_positions)
         total_loss = (start_loss + end_loss) / 2.0
-
+            
         return total_loss
+
+    def adversarial_loss(self, loss):
+        grad = fluid.backward.append_backward(loss, [self.feature.name])[0][1]
+        grad.stop_gradient = True
+        perturb = _scale_l2(grad, 1.0)
+        adv_loss = self.cl_loss_from_embedding(perturb + self.feature)
+        return adv_loss
+
+    def _add_loss(self):
+        loss = self.cl_loss_from_embedding(self.feature)
+        adv_loss = self.adversarial_loss(loss)
+        return loss + adv_loss
 
     def _add_metrics(self):
         return []
