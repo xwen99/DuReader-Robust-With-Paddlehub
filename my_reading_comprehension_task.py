@@ -422,6 +422,7 @@ class ReadingComprehensionTask(BaseTask):
             startup_program=startup_program,
             config=config,
             metrics_choices=metrics_choices)
+        self.build_strategy.fuse_all_reduce_ops = False
         self.feature = feature
         self.data_reader = data_reader
         self.sub_task = sub_task.lower()
