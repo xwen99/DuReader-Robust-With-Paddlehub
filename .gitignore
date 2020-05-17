@@ -1,10 +1,6 @@
 __pycache__
 */__pycache__
 data
-ckpt_dureader
-output
-finetuned_model
-pretrained_model
-with_paddle_hub/ckpt*
-with_paddle_hub/*.json
-with_paddle_hub/*.tar.gz
+ckpt*
+/*.json
+*.tar.gz
