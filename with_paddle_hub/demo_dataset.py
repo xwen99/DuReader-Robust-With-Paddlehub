@@ -150,14 +150,14 @@ class DuReader(BaseNLPDataset):
                                             cleaned_answer_text, " in ", qa))
                             continue
                     
-                        p = 0.02
+                        p = 0.05
                         for i in range(len(doc_tokens)):
                             if np.random.random() < p:
                                 doc_tokens[i] = "[PAD]"
 
                         question_texts = list(question_text)
                         for i in range(len(question_texts)):
-                            if np.random.random() < p:
+                            if np.random.random() < p and question_text[i] not in orig_answer_text:
                                 question_texts[i] = "[PAD]"
                         question_text = ''.join(question_texts)
                     

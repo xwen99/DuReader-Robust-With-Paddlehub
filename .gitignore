@@ -6,3 +6,5 @@ output
 finetuned_model
 pretrained_model
 with_paddle_hub/ckpt*
+with_paddle_hub/*.json
+with_paddle_hub/*.tar.gz
