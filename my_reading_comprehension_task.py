@@ -50,7 +50,7 @@ def dsc_loss(logits, label, gamma=1.0):
     dice_score = 1.0 - (2.0 * dice_numerator + gamma) / (dice_denominator + gamma)
     return dice_score
 
-def focal_loss(logits, label, alpha=0.25, gamma=2):
+def focal_loss(logits, label, alpha=1.0, gamma=2):
     y_pred = fluid.layers.softmax(logits, axis=1)
     y_pred = fluid.layers.clip(y_pred, min=1e-8, max=1.0 - 1e-8)
     label = fluid.layers.one_hot(label, depth=logits.shape[-1])
@@ -501,15 +501,27 @@ class ReadingComprehensionTask(BaseTask):
             
         return total_loss
 
+    def cl_loss_from_logits(self):
+        start_positions = self.labels[0]
+        end_positions = self.labels[1]
+
+        start_logits = self.outputs[0]
+        end_logits = self.outputs[1]
+        start_loss = focal_loss(logits=start_logits, label=start_positions)
+        end_loss = focal_loss(logits=end_logits, label=end_positions)
+        total_loss = (start_loss + end_loss) / 2.0
+
+        return total_loss
+
     def adversarial_loss(self, loss):
         grad = fluid.backward.append_backward(loss, [self.feature.name])[0][1]
-        grad.stop_gradient = True
+        #grad.stop_gradient = True
         perturb = _scale_l2(grad, 1.0)
         adv_loss = self.cl_loss_from_embedding(perturb + self.feature)
         return adv_loss
 
     def _add_loss(self):
-        loss = self.cl_loss_from_embedding(self.feature)
+        loss = self.cl_loss_from_logits()
         #adv_loss = self.adversarial_loss(loss)
         return loss# + adv_loss
 
