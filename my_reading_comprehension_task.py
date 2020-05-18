@@ -30,7 +30,7 @@ import io
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
-from paddlehub import BaseTask
+from my_base_task import BaseTask
 from paddlehub.common.logger import logger
 from paddlehub.common.paddle_helper import dtype_map, clone_program, connect_program
 from paddlehub.reader import tokenization

@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
     # 设置运行配置
     config = hub.RunConfig(
-        eval_interval=10,
+        eval_interval=100,
         use_pyreader=False,
         use_data_parallel=args.use_data_parallel,
         use_cuda=args.use_gpu,
