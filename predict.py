@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     # 设置运行配置
     config = hub.RunConfig(
-        use_pyreader=True,
+        use_pyreader=False,
         use_data_parallel=False,
         use_cuda=args.use_gpu,
         batch_size=args.batch_size,
@@ -94,5 +94,5 @@ if __name__ == '__main__':
     # 调用predict接口, 打开return_result(True)，将自动返回预测结果
     all_prediction, all_nbest_json = reading_comprehension_task.predict(data=data, load_best_model=True, return_result=True)
     # 写入预测结果
-    json.dump(all_prediction, open(args.checkpoint_dir.split('/')[-1][5:] + '_prediction_pred.json', 'w'), ensure_ascii=False)
-    json.dump(all_nbest_json, open(args.checkpoint_dir.split('/')[-1][5:] + '_nbest_pred.json', 'w'), ensure_ascii=False)
+    json.dump(all_prediction, open(args.checkpoint_dir.split('/')[-1][5:] + '_prediction_pred_final.json', 'w'), ensure_ascii=False)
+    json.dump(all_nbest_json, open(args.checkpoint_dir.split('/')[-1][5:] + '_nbest_pred_final.json', 'w'), ensure_ascii=False)

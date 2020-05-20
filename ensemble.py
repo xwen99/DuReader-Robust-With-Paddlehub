@@ -24,14 +24,16 @@ def ensemble_example(answers, n_models=None):
 
 if __name__ == "__main__":
     pred = {}
-    nbest0 = json.load(open('./dureader+dev+roberta_nbest_pred.json', 'r'))
-    nbest1 = json.load(open('./dureader+dev+roberta2_nbest_pred.json', 'r'))
-    nbest2 = json.load(open('./dureader+dev+roberta3_nbest_pred.json', 'r'))
-    nbests = [nbest0, nbest1, nbest2]
+    nbest0 = json.load(open('./dureader+roberta+fgm_nbest_pred_final.json', 'r'))
+    nbest1 = json.load(open('./dureader+roberta+fgm2_nbest_pred_final.json', 'r'))
+    nbest2 = json.load(open('./dureader+roberta+fgm3_nbest_pred_final.json', 'r'))
+    nbest3 = json.load(open('./dureader+dev+roberta+fgm_nbest_pred_final.json', 'r'))
+    nbest4 = json.load(open('./dureader+dev+roberta+fgm2_nbest_pred_final.json', 'r'))
+    nbests = [nbest0, nbest1, nbest2, nbest3, nbest4]
     n_models = len(nbests)
     qids = list(nbests[0].keys())
     for qid in qids:
         ensemble_nbest = ensemble_example([nbest[qid] for nbest in nbests], n_models=n_models)
         pred[qid] = ensemble_nbest[0]['text']
     
-    json.dump(pred, open('ensembled_pred.json', 'w'), ensure_ascii=False)
+    json.dump(pred, open('ensembled_pred_final.json', 'w'), ensure_ascii=False)
