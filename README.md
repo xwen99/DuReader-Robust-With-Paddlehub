@@ -25,7 +25,7 @@ Machine Reading Comprehension Models](https://arxiv.org/pdf/2004.11142.pdf)
 * 数据
   * 加数据体现在两方面：基于现有数据做数据增强，以及直接加上其他中文阅读理解数据集。
     * 数据增强方面，推荐看这篇文章：[NLP中数据增强的综述，快速的生成大量的训练数据](https://zhuanlan.zhihu.com/p/142168215)，以及苏神的这篇文章里的 trick：[基于CNN的阅读理解式问答模型：DGCNN](https://kexue.fm/archives/5409)。我有尝试过用 Google 翻译做回译（中->英->中），但不论对问题和文档都做回译，还是只对问题做回译，都只会掉点。分析原因可能是百度知道和百科的语料质量较低（翻翻数据你就明白了，这倒也不怪百度。。），导致回译后对语义影响较大。另外有论文（[Improving the Robustness of Question Answering Systems to Question Paraphrasing](https://www.aclweb.org/anthology/P19-1610.pdf)）表示对问题做转写（paraphrase）对鲁棒性会有一定提升，但由于未找到合适的中文转写方案，遂作罢。最后采用的方案是随机将问题和材料的部分字 id 置零。
-    * 加数据集方面，考虑了 CMRC2018, DRCD（繁转简）, DuReader 2.0（格式转换脚本见 dureader2squad.py）, WebQA, SogouQA, CJRC2019。DRCD 和 CJRC2019 基本没提升，WebQA 和 SogouQA 甚至会拉胯，可能还是任务 domain 有一定差异。经测试最后采用了 CMRC2018 和 DuReader 2.0。最后提交的模型把开发集也加入训练，对于多答案的情况随机抽一个做 ground truth。
+    * 加数据集方面，考虑了 CMRC2018, DRCD（繁转简）, DuReader 2.0（格式转换脚本见 dureader2squad.py）, WebQA, SogouQA, CAIL2019。DRCD 和 CAIL2019 基本没提升，WebQA 和 SogouQA 甚至会拉胯，可能还是任务 domain 有一定差异。经测试最后采用了 CMRC2018 和 DuReader 2.0。最后提交的模型把开发集也加入训练，对于多答案的情况随机抽一个做 ground truth。
 * 模型
   * 推荐看这个项目：[中文语言理解基准测评](https://github.com/CLUEbenchmark/CLUE)，详细比较了各中文预训练模型在各语言任务的表现。在百度的论文里目前最好的中文预训练模型应该是 ERNIE 2.0，奈何百度不开源中文的权重。在和 ERNIE 苦苦纠缠了几天之后果断转战 RoBERTa-wwm-large，虽然模型真的重，但结果真的香（直接提 3 个点）。
   * 模型其他方面感觉没有多大改进空间，预训练模型还是强，前人经验表示 fc 层一把梭就是最好的方法，简单试了一下加两层 Transformer 会掉点，就没再改。
@@ -56,6 +56,16 @@ Machine Reading Comprehension Models](https://arxiv.org/pdf/2004.11142.pdf)
 * 最后 `python ensemble.py` 做模型 ensemble（如有需要）
 * 参数要求见程序及脚本示例
 
+## 前人经验
+* [第四届语言与智能高峰论坛-会议资料下载](http://tcci.ccf.org.cn/summit/2019/dl.php)
+* [lic2019-dureader2.0-rank2](https://github.com/SunnyMarkLiu/lic2019-dureader2.0-rank2)
+* [BERT-Dureader](https://github.com/HandsomeCao/BERT-Dureader)
+* [LES-MMRC-Summary](https://github.com/YingZiqiang/LES-MMRC-Summary)
+* [DIAC2019-Adversarial-Attack-Share](https://github.com/WenRichard/DIAC2019-Adversarial-Attack-Share)
+* [cail2019](https://github.com/NoneWait/cail2019)
+* [基于CNN的阅读理解式问答模型：DGCNN](https://kexue.fm/archives/5409)
+*  [【比赛分享】刷新CoQA榜单纪录：基于对抗训练和知识蒸馏的机器阅读理解方案解析](https://fyubang.com/2019/11/06/coqa/)
+
 ## 可能的改进方向
 * 更好的预训练模型（如果有）
 * 更多的数据增强（如问题重述）
@@ -63,4 +73,5 @@ Machine Reading Comprehension Models](https://arxiv.org/pdf/2004.11142.pdf)
 * 更多的训练技巧（如多任务训练）
 * 更好的对抗训练（比如复现百度 AAAI 2020 那篇文章）
 * 加知识图谱
+* 加知识蒸馏
 * 。。。
