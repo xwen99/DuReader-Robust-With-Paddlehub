@@ -42,7 +42,7 @@ Machine Reading Comprehension Models](https://arxiv.org/pdf/2004.11142.pdf)
   * test1 数据集 F1 76.98849，排名 37，还是太菜了。。。
 
 ## 踩坑记录
-* 可能需要 export cuda 路径到 LD_LIBRAYR_PATH
+* 可能需要 export cuda 路径到 LD_LIBRARY_PATH
 * paddle.fluid. gradients 不支持求跨 program 的梯度，加 program_guard 也无解。
 * paddle.fluid.backward.append_backward 支持求跨 program 的梯度，但 clone program 的时候，如果是 test 模式，会被删掉，因此最好 clone 之后再 append_backward。
 * `adv_loss = self.cl_loss_from_embedding(perturb + self.feature)` 这句话，paddle 1.7 以前有 bug，1.7 以后必须按这个顺序，交换后（`self.feature + perturb`）也有 bug。
