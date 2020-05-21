@@ -13,7 +13,3 @@ tar -zxvf dureader_robust-test1.tar.gz
 mv dureader_robust-test1/test1.json data/
 rm -r dureader_robust-test1/
 rm dureader_robust-test1.tar.gz
-
-# for my docker only
-export LD_LIBRAYR_PATH=/opt/tiger/cuda/lib64
-ln -s /opt/tiger/cuda/lib64/libcudnn.so.7 /opt/tiger/cuda/lib64/libcudnn.so
