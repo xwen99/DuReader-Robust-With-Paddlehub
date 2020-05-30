@@ -39,7 +39,8 @@ Machine Reading Comprehension Models](https://arxiv.org/pdf/2004.11142.pdf)
   * max_answer_length 默认就好，40 也可以，调低对开发集有一点提示但测试集会变差。答案生成步骤实际用了答案起止两个位置 logit 评分的和对 nbest 答案进行排序，对此评分准侧做过一些修改的尝试但没有提升。最后对答案长度加了一点惩罚，即上述评分 - lambda * （end - start）。
   * 最后提交的结果为 5 个 roberta 的 ensemble
 * 结果
-  * test1 数据集 F1 76.98849，排名 37，还是太菜了。。。
+  * test1 数据集 F1 76.98849，排名 37
+  * test2 数据集 F1 72.887，排名 15
 
 ## 踩坑记录
 * 可能需要 export cuda 路径到 LD_LIBRARY_PATH
