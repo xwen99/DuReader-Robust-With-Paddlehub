@@ -36,7 +36,7 @@ Machine Reading Comprehension Models](https://arxiv.org/pdf/2004.11142.pdf)
   * 其他训练参数方面，没变，只要调就掉点，两个 epoch 足矣。
 * 评测
   * PaddleHub 的 Baseline 默认用的 CMRC2018 的评测代码，这里手工换成了 LIC2020（即本次比赛）的，数值上有一定偏差。
-  * max_answer_length 默认就好，40 也可以，调低对开发集有一点提示但测试集会变差。答案生成步骤实际用了答案起止两个位置 logit 评分的和对 nbest 答案进行排序，对此评分准侧做过一些修改的尝试但没有提升。最后对答案长度加了一点惩罚，即上述评分 - lambda * （end - start）。
+  * max_answer_length 默认就好，40 也可以，调低对开发集有一点提示但测试集会变差。答案生成步骤实际用了答案起止两个位置 logit 评分的和对 nbest 答案进行排序，对此评分准侧做过一些修改的尝试但没有提升。最后对答案长度加了一点惩罚，即上述评分 - lambda * (end - start)。
   * 最后提交的结果为 5 个 roberta 的 ensemble
 * 结果
   * test1 数据集 F1 76.98849，排名 37
