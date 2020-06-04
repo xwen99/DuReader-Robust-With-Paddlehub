@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 #  Copyright (c) 2019  PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"
@@ -30,7 +30,7 @@ import io
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
-from my_base_task import BaseTask
+from paddlehub import BaseTask
 from paddlehub.common.logger import logger
 from paddlehub.common.paddle_helper import dtype_map, clone_program, connect_program
 from paddlehub.reader import tokenization
@@ -39,6 +39,7 @@ from paddlehub.finetune.evaluator import squad2_evaluate
 from paddlehub.finetune.evaluator import cmrc2018_evaluate
 import lic2020_evaluate
 
+
 def dsc_loss(logits, label, gamma=1.0):
     y_pred = fluid.layers.softmax(logits, axis=1)
     y_pred = fluid.layers.reshape(y_pred, shape=[-1])
@@ -46,28 +47,35 @@ def dsc_loss(logits, label, gamma=1.0):
     label = fluid.layers.reshape(label, shape=[-1])
 
     dice_numerator = fluid.layers.reduce_sum((1.0 - y_pred) * y_pred * label)
-    dice_denominator = fluid.layers.reduce_sum((1.0 - y_pred) * y_pred) + fluid.layers.reduce_sum(label)
-    dice_score = 1.0 - (2.0 * dice_numerator + gamma) / (dice_denominator + gamma)
+    dice_denominator = fluid.layers.reduce_sum(
+        (1.0 - y_pred) * y_pred) + fluid.layers.reduce_sum(label)
+    dice_score = 1.0 - (2.0 * dice_numerator + gamma) / \
+        (dice_denominator + gamma)
     return dice_score
+
 
 def focal_loss(logits, label, alpha=1.0, gamma=2):
     y_pred = fluid.layers.softmax(logits, axis=1)
     y_pred = fluid.layers.clip(y_pred, min=1e-8, max=1.0 - 1e-8)
     label = fluid.layers.one_hot(label, depth=logits.shape[-1])
     focal = - alpha * label * fluid.layers.log(y_pred) * (1 - y_pred)**gamma \
-            - (1 - alpha) * (1 - label) * fluid.layers.log(1 - y_pred) * y_pred**gamma
+            - (1 - alpha) * (1 - label) * \
+        fluid.layers.log(1 - y_pred) * y_pred**gamma
     return fluid.layers.reduce_mean(focal) * 100
 
+
 def _scale_l2(x, norm_length):
-  # shape(x) = (batch, num_timesteps, d)
-  # Divide x by max(abs(x)) for a numerically stable L2 norm.
-  # 2norm(x) = a * 2norm(x/a)
-  # Scale over the full sequence, dims (1, 2)
-  alpha = fluid.layers.reduce_max(fluid.layers.abs(x), dim=[1, 2], keep_dim=True) + 1e-12
-  l2_norm = alpha * fluid.layers.sqrt(
-      fluid.layers.reduce_sum(fluid.layers.pow(x / alpha, 2), dim=[1, 2], keep_dim=True) + 1e-6)
-  x_unit = x / l2_norm
-  return norm_length * x_unit
+    # shape(x) = (batch, num_timesteps, d)
+    # Divide x by max(abs(x)) for a numerically stable L2 norm.
+    # 2norm(x) = a * 2norm(x/a)
+    # Scale over the full sequence, dims (1, 2)
+    alpha = fluid.layers.reduce_max(fluid.layers.abs(x), dim=[
+                                    1, 2], keep_dim=True) + 1e-12
+    l2_norm = alpha * fluid.layers.sqrt(
+        fluid.layers.reduce_sum(fluid.layers.pow(x / alpha, 2), dim=[1, 2], keep_dim=True) + 1e-6)
+    x_unit = x / l2_norm
+    return norm_length * x_unit
+
 
 def _get_best_indexes(logits, n_best_size):
     """Get the n-best logits from a list."""
@@ -292,7 +300,8 @@ def get_predictions(all_examples, all_features, all_results, n_best_size,
                     end_logit=null_end_logit))
         prelim_predictions = sorted(
             prelim_predictions,
-            key=lambda x: (x.start_logit + x.end_logit - 0.02 * (x.end_index - x.start_index)),
+            key=lambda x: (x.start_logit + x.end_logit -
+                           0.02 * (x.end_index - x.start_index)),
             reverse=True)
 
         seen_predictions = {}
@@ -365,7 +374,8 @@ def get_predictions(all_examples, all_features, all_results, n_best_size,
         total_scores = []
         best_non_null_entry = None
         for entry in nbest:
-            total_scores.append(entry.start_logit + entry.end_logit - 0.02 * (entry.end_index - entry.start_index))
+            total_scores.append(entry.start_logit + entry.end_logit -
+                                0.02 * (entry.end_index - entry.start_index))
             if not best_non_null_entry:
                 if entry.text:
                     best_non_null_entry = entry
@@ -498,7 +508,7 @@ class ReadingComprehensionTask(BaseTask):
         start_loss = focal_loss(logits=start_logits, label=start_positions)
         end_loss = focal_loss(logits=end_logits, label=end_positions)
         total_loss = (start_loss + end_loss) / 2.0
-            
+
         return total_loss
 
     def cl_loss_from_logits(self):
@@ -523,7 +533,7 @@ class ReadingComprehensionTask(BaseTask):
     def _add_loss(self):
         loss = self.cl_loss_from_logits()
         #adv_loss = self.adversarial_loss(loss)
-        return loss# + adv_loss
+        return loss  # + adv_loss
 
     def _add_metrics(self):
         return []
@@ -555,10 +565,10 @@ class ReadingComprehensionTask(BaseTask):
                 self.env.main_program, for_test=True)
             hub.common.paddle_helper.set_op_attr(
                 self.env.main_program, is_test=True)
-        
+
         if self.is_train_phase:
             with fluid.program_guard(self.env.main_program,
-                                    self._base_startup_program):
+                                     self._base_startup_program):
                 with fluid.unique_name.guard(self.env.UNG):
                     self.env.adv_loss = self.adversarial_loss(self.loss)
                     self.env.loss += self.env.adv_loss
@@ -631,7 +641,8 @@ class ReadingComprehensionTask(BaseTask):
                 np_end_logits = run_state.run_results[4]
                 for idx in range(np_unique_ids.shape[0]):
                     unique_id = int(np_unique_ids[idx])
-                    start_logits = [float(x) for x in np_start_logits[idx].flat]
+                    start_logits = [float(x)
+                                    for x in np_start_logits[idx].flat]
                     end_logits = [float(x) for x in np_end_logits[idx].flat]
                     all_results.append(
                         self.RawResult(
