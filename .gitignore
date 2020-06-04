@@ -4,3 +4,5 @@ data
 ckpt*
 /*.json
 *.tar.gz
+.DS_STORE
+submission

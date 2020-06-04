@@ -14,6 +14,17 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+from paddlehub.finetune.config import RunConfig
+from paddlehub.finetune.checkpoint import load_checkpoint, save_checkpoint
+from paddlehub.common.logger import logger
+from paddlehub.common.dir import tmp_dir
+from paddlehub.common.utils import mkdir, version_compare
+from paddlehub.common.paddle_helper import dtype_map, clone_program
+import paddlehub as hub
+from tb_paddle import SummaryWriter
+import paddle.fluid as fluid
+import paddle
+import numpy as np
 from __future__ import division
 from __future__ import print_function
 
@@ -29,19 +40,6 @@ if six.PY2:
     from inspect import getargspec as get_args
 else:
     from inspect import getfullargspec as get_args
-import numpy as np
-import paddle
-import paddle.fluid as fluid
-from tb_paddle import SummaryWriter
-
-import paddlehub as hub
-from paddlehub.common.paddle_helper import dtype_map, clone_program
-from paddlehub.common.utils import mkdir, version_compare
-from paddlehub.common.dir import tmp_dir
-from paddlehub.common.logger import logger
-from paddlehub.finetune.checkpoint import load_checkpoint, save_checkpoint
-from paddlehub.finetune.config import RunConfig
-import myio
 
 
 class RunState(object):
@@ -817,7 +815,7 @@ class BaseTask(object):
 
         logger.info("Saving model checkpoint to {}".format(model_saved_dir))
         # to resume traning by loading ckpt, it must be save program (save_persistables)
-        myio.save_persistables(
+        fluid.io.save_persistables(
             self.exe, dirname=model_saved_dir, main_program=self.main_program)
         save_checkpoint(
             checkpoint_dir=self.config.checkpoint_dir,
@@ -840,11 +838,11 @@ class BaseTask(object):
             path = os.path.join(dirname, var.name)
             return os.path.exists(path)
 
-        myio.load_vars(
+        fluid.io.load_vars(
             self.exe, dirname, self.main_program, predicate=if_exist)
 
     def save_parameters(self, dirname):
-        myio.save_params(
+        fluid.io.save_params(
             self.exe, dirname=dirname, main_program=self.main_program)
 
     def save_inference_model(self,
@@ -852,7 +850,7 @@ class BaseTask(object):
                              model_filename=None,
                              params_filename=None):
         with self.phase_guard("predict"):
-            myio.save_inference_model(
+            fluid.io.save_inference_model(
                 dirname=dirname,
                 executor=self.exe,
                 feeded_var_names=self.feed_list,
@@ -1054,7 +1052,7 @@ class BaseTask(object):
         """
         with fluid.program_guard(self.main_program, self.startup_program):
             if self.config.use_pyreader:
-                data_loader = myio.DataLoader.from_generator(
+                data_loader = fluid.io.DataLoader.from_generator(
                     feed_list=self.feed_var_list,
                     capacity=64,
                     use_double_buffer=True,
