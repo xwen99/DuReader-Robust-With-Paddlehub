@@ -47,7 +47,7 @@ Machine Reading Comprehension Models](https://arxiv.org/pdf/2004.11142.pdf)
 * paddle.fluid. gradients 不支持求跨 program 的梯度，加 program_guard 也无解。
 * paddle.fluid.backward.append_backward 支持求跨 program 的梯度，但 clone program 的时候，如果是 test 模式，会被删掉，因此最好 clone 之后再 append_backward。
 * `adv_loss = self.cl_loss_from_embedding(perturb + self.feature)` 这句话，paddle 1.7 以前有 bug，1.7 以后必须按这个顺序，交换后（`self.feature + perturb`）也有 bug。
-* PaddleHub 保存模型 checkpoint 在 Paddle 1.7 及以后会有 bug，解决方案是把整个 io 文件替换成旧的。
+* ~~PaddleHub 保存模型 checkpoint 在 Paddle 1.7 及以后会有 bug，解决方案是把整个 io 文件替换成旧的。~~（paddlepaddle 1.8.x 已修复）
 
 ## 代码使用
 * 先 `bash download.sh` 下载数据
